@@ -62,7 +62,7 @@ $sLyric=preg_replace("/\[\d\d\:\d\d\.\d\d\]/", "", $sLyric);
 $sLyric=preg_replace("/\[.*\]/", "", $sLyric);
 $sLyric="<p>".$sLyric."</p>";
 
-header('Content-type: text/html; charset=UTF-8');
+echo '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">';
 echo '<span style="font-family: 微软雅黑, &#39;Microsoft YaHei&#39;; background-color: #FFFFFF;">';
 
 //echo "ID=".$sId."<br>";
