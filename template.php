@@ -1,0 +1,50 @@
+<?php
+$templatestr=<<<STR
+<p>
+    <span style="font-family: 微软雅黑, &#39;Microsoft YaHei&#39;; background-color: #FFFFFF;">[aplayer author=&quot;@MainArtist&quot; type=&quot;song&quot; title=&quot;@Title&quot; url=&quot;@DirectLink&quot;&nbsp;autoplay=&quot;false&quot; /]</span>
+</p>
+<p>
+    <br/>
+</p>
+<p>
+    @Description
+</p>
+<p>
+    <br/>
+</p>
+<p>
+    单曲封面：
+</p>
+<p>
+    <br/><img src="@AlbumPicUrl" width="300" height="300"/>
+</p>
+<p>
+    <br/>
+</p>
+<p>
+    网易云页面：
+</p>
+<p>
+    <a href="@NeteasePage" _src="@NeteasePage">@NeteasePage</a> 
+</p>
+<p>
+    <br/>
+</p>
+<p>
+    MP3直链：
+</p>
+<p>
+    <a href="@DirectLink" target="_self">@DirectLink</a><br/>
+</p>
+<p>
+    <br/>
+</p>
+<p>
+    歌词：
+</p>
+@Lyric
+<p>
+    <br/>
+</p>
+STR;
+?>
