@@ -91,6 +91,7 @@ $templatestr = str_replace("@DirectLink",$sDirectLink,$templatestr);
 $templatestr = str_replace("@NeteasePage",$sPage,$templatestr);
 $templatestr = str_replace("@Lyric",$sLyric,$templatestr);
 $templatestr = str_replace("@AlbumPicUrl",$sAlbumPicUrl,$templatestr);
+$templatestr = str_replace("@Description",$_POST["des"],$templatestr);
 
 echo "<p><textarea rows=1 style='width:100%'>".$sMainArtist." - ".$sTitle."</textarea></p><br>";
 echo "<p><textarea style='height:60%;width:100%'>".$templatestr."</textarea></p><br>";
