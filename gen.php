@@ -3,6 +3,7 @@
 # in weapi, you should also put BigInteger.php into same directory, but don't require it.
 require_once 'NeteaseMusicAPI_mini.php';
 
+echo '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">';
 # Initialize
 $api = new NeteaseMusicAPI();
 
@@ -56,13 +57,65 @@ $sLyric=$lyricdata->lrc->lyric;
 //替换全角字符
 $sLyric=str_replace("’","'",$sLyric);
 $sLyric=str_replace("‘","'",$sLyric);
-$sLyric=str_replace("\n","</p><p>",$sLyric);
+//$sLyric=str_replace("\n","</p><p>",$sLyric);
 //删除时间戳
-$sLyric=preg_replace("/\[\d\d\:\d\d\.\d\d\]/", "", $sLyric);
-$sLyric=preg_replace("/\[.*\]/", "", $sLyric);
-$sLyric="<p>".$sLyric."</p>";
+//$sLyric=preg_replace("/\[\d\d\:\d\d\.\d\d\]/", "", $sLyric);
+//$sLyric=preg_replace("/\[.*\]/", "", $sLyric);
+//$sLyric="<p>".$sLyric."</p>";
 
-echo '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">';
+$sEngLyc=explode("\n",$sLyric);
+//var_dump($sEngLyc);
+
+$line=array();
+
+//将歌词以时间戳为key,歌词内容为value分解成map
+for ($curI=0;$curI<count($sEngLyc);$curI++) {
+	//匹配到时间戳，后半句排除只有时间戳没有实际歌词的情况
+	//PREG_OFFSET_CAPTURE:如果传递了这个标记，对于每一个出现的匹配返回时会附加字符串偏移量(相对于目标字符串的)。 注意：这会改变填充到matches参数的数组，使其每个元素成为一个由 第0个元素是匹配到的字符串，第1个元素是该匹配字符串 在目标字符串subject中的偏移量。
+	//http://php.net/manual/zh/function.preg-match.php
+	if (preg_match("/\[.*\]/",$sEngLyc[$curI],$matches,PREG_OFFSET_CAPTURE)==1) {
+		if (strlen($sEngLyc[$curI])>strlen($matches[0][0])) {
+			$time=substr($sEngLyc[$curI],$matches[0][1],strlen($matches[0][0]));
+			$bar=substr($sEngLyc[$curI],$matches[0][1]+strlen($matches[0][0]));
+	//		echo $time." wtf  ".$bar."<br>";
+			$line[$time]=$bar;
+		}
+	}
+}
+
+//var_dump($line);
+//echo "<br>";
+
+//如果此歌曲有中文翻译，按时间戳为key将中文歌词跟在每行尾
+if (property_exists($lyricdata->tlyric,"lyric")) {
+	$sTlyric=$lyricdata->tlyric->lyric;
+
+	$sChnLyc=explode("\n",$sTlyric);
+//	var_dump($sChnLyc);
+
+
+	for ($curI=0;$curI<count($sChnLyc);$curI++) {
+		if (preg_match("/\[.*\]/",$sChnLyc[$curI],$matches,PREG_OFFSET_CAPTURE)==1) {
+	//		echo $sChnLyc[$curI]." wtf ".$curI." wtf ".$matches[0][0]."<br>";
+			if (strlen($sChnLyc[$curI])>strlen($matches[0][0])) {
+				$time=substr($sChnLyc[$curI],$matches[0][1],strlen($matches[0][0]));
+	//			echo $time." ".gettype($time)."<br>";
+				$chnBar=substr($sChnLyc[$curI],$matches[0][1]+strlen($matches[0][0]));
+	//			echo $time."   ".$chnBar."<br>";
+	//			echo array_key_exists($time,$line);
+				if (array_key_exists($time,$line)) {
+					$line[$time]=$line[$time]."</p><p>".$chnBar;
+				}
+			}
+		}
+	}
+	//var_dump($line);
+}
+
+//将歌词map再组合成string
+$sRealLyric=implode("</p><p>",$line);
+//var_dump($sRealLyric);
+
 echo '<span style="font-family: 微软雅黑, &#39;Microsoft YaHei&#39;; background-color: #FFFFFF;">';
 
 //echo "ID=".$sId."<br>";
@@ -85,11 +138,12 @@ echo '<span style="font-family: 微软雅黑, &#39;Microsoft YaHei&#39;; backgro
 
 require("template.php");
 
+//替换模板中对应内容
 $templatestr = str_replace("@MainArtist",$sMainArtist,$templatestr);
 $templatestr = str_replace("@Title",$sTitle,$templatestr);
 $templatestr = str_replace("@DirectLink",$sDirectLink,$templatestr);
 $templatestr = str_replace("@NeteasePage",$sPage,$templatestr);
-$templatestr = str_replace("@Lyric",$sLyric,$templatestr);
+$templatestr = str_replace("@Lyric",$sRealLyric,$templatestr);
 $templatestr = str_replace("@AlbumPicUrl",$sAlbumPicUrl,$templatestr);
 $templatestr = str_replace("@Description",$_POST["des"],$templatestr);
 
