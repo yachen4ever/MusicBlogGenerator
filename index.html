@@ -3,8 +3,20 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 </head>
 <body>
-    <form id="form" method="post" action="./gen.php">
+    <form id="form" method="post" action="/gen/gen.php">
         <p>NetEase Music ID: <input type="text" name="sid" id="sid" /></p>
+		<p>Intro: <input type="text" name="intro" id="intro" /></p>
+		<p>Cata: <select name="cata" id="cata">
+					<option value="1">Pop</option>
+					<option value="2">Hip-Hop</option>
+					<option value="3">Country</option>
+					<option value="4">R&amp;B</option>
+					<option value="5">Light</option>
+					<option value="6">Electronic</option>
+					<option value="7">Rock</option>
+					<option value="8">Folk</option>
+				</select>
+		</p>
 		<p>Description: <textarea rows="10" cols="100" name="des" id="des"></textarea> </p>
         <p><input type="submit" name="submit" id="submit" value="Submit" /></p>
     </form>

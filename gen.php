@@ -7,6 +7,16 @@ echo '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">';
 # Initialize
 $api = new NeteaseMusicAPI();
 
+//连接SQLite数据库
+$dbConn = new SQLite3('../zb_users/data/musicdb.db');
+if(!$dbConn){
+	echo $dbConn->lastErrorMsg();
+} else {
+	echo "Opened database successfully\n";
+}
+
+//echo $_POST["cata"]."<br>";
+
 $sId=$_POST["sid"];
 
 //获取歌曲信息
@@ -147,8 +157,75 @@ $templatestr = str_replace("@Lyric",$sRealLyric,$templatestr);
 $templatestr = str_replace("@AlbumPicUrl",$sAlbumPicUrl,$templatestr);
 $templatestr = str_replace("@Description",$_POST["des"],$templatestr);
 
-echo "<p><textarea rows=1 style='width:100%'>".$sMainArtist." - ".$sTitle."</textarea></p><br>";
+$sRealTitle = $sMainArtist." - ".$sTitle." ".$_POST["intro"];
+
+echo "<p><textarea rows=1 style='width:100%'>".$sRealTitle."</textarea></p><br>";
 echo "<p><textarea style='height:60%;width:100%'>".$templatestr."</textarea></p><br>";
 echo "<p><textarea rows=1 style='width:100%'>".$sTag."</textarea></p>";
+
+
+
+$logTag="";
+
+//生成Tag字段
+for ($curI=0;$curI<$sArtistCnt;$curI++) {
+	$ArtistName=$data->songs[0]->ar[$curI]->name;
+	//检查是否已有该歌手Tag
+	$dbTagSelStr='select tag_ID from zbp_tag where tag_Name="'.$ArtistName.'"';
+	$results = $dbConn->query($dbTagSelStr);
+	$row = $results->fetchArray();
+//	var_dump($row);
+	
+	//如果歌手已存在将其TagID加入
+	if (!empty($row)) {
+		$logTag=$logTag."{".$row[0]."}";
+		//歌手对应文章数量+1
+		$dbUpdateTagCnt='update zbp_tag set tag_Count=tag_Count+1 where tag_Name="'.$ArtistName.'"';
+		$dbConn->exec($dbUpdateTagCnt);
+	}
+	//如果歌手不存在于Tag列表
+	else {
+		//获取下一TagID
+		$dbGetNextTagIdStr='SELECT tag_id FROM zbp_tag order BY tag_id desc  LIMIT 0,1';
+		$results = $dbConn->query($dbGetNextTagIdStr);
+		$row = $results->fetchArray();
+	//	var_dump($row);
+		$nextTagID=$row[0]+1;
+		$dbTagInsStr='insert into zbp_tag (tag_ID,tag_Name,tag_Order,tag_Count) values ('.$nextTagID.',"'.$ArtistName.'",0,1)';
+	//	echo $dbTagInsStr."<br>";
+		$dbConn->exec($dbTagInsStr);
+		$logTag=$logTag."{".$nextTagID."}";
+	}
+//	echo $logTag;
+}
+
+//获取下一文章ID
+$dbGetNextPostIdStr='SELECT log_id FROM zbp_post order BY log_id desc  LIMIT 0,1';
+$results = $dbConn->query($dbGetNextPostIdStr);
+$row = $results->fetchArray();
+//var_dump($row);
+$nextPostID=$row[0]+1;
+
+$dbPostInsStr=<<<INSSTR
+	insert into zbp_post (log_ID,log_CateID,log_AuthorID,log_Tag,log_Status,log_Type,log_IsTop,
+	log_isLock,log_Title,log_Intro,log_Content,log_PostTime,log_CommNums,log_ViewNums,log_Alias,log_Template,log_Meta)
+	values (@nextPostID,@logCateID,1,"@logTag",0,0,0,0,"@logTitle","",'@logContent',@logPostTime,0,0,"","","");
+INSSTR;
+
+//获取当前时间戳
+$logPostTime = strtotime(date('Y-m-d H:i:s',time()));
+
+$templatestr = str_replace("'","''",$templatestr);
+
+$dbPostInsStr = str_replace("@nextPostID",$nextPostID,$dbPostInsStr);
+$dbPostInsStr = str_replace("@logCateID",$_POST["cata"],$dbPostInsStr);
+$dbPostInsStr = str_replace("@logTag",$logTag,$dbPostInsStr);
+$dbPostInsStr = str_replace("@logTitle",$sRealTitle,$dbPostInsStr);
+$dbPostInsStr = str_replace("@logContent",$templatestr,$dbPostInsStr);
+$dbPostInsStr = str_replace("@logPostTime",$logPostTime,$dbPostInsStr);
+
+echo $dbPostInsStr."<br>";
+$dbConn->exec($dbPostInsStr);
+
 
 ?>
